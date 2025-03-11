@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rideshare - Select Locations</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <style>
+        #map { height: 400px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h2>Select Pickup and Drop-off Locations</h2>
+    <div id="map"></div>
+    <p>Pickup: <span id="pickup"></span></p>
+    <p>Drop-off: <span id="dropoff"></span></p>
+    <button onclick="submitRide()">Submit Ride</button>
+    
+    <script>
+        var map = L.map('map').setView([37.7749, -122.4194], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var pickupMarker, dropoffMarker;
+        var locations = { pickup: null, dropoff: null };
+
+        map.on('click', function(e) {
+            if (!locations.pickup) {
+                locations.pickup = e.latlng;
+                pickupMarker = L.marker(e.latlng).addTo(map).bindPopup("Pickup Location").openPopup();
+                document.getElementById("pickup").innerText = `${e.latlng.lat}, ${e.latlng.lng}`;
+            } else if (!locations.dropoff) {
+                locations.dropoff = e.latlng;
+                dropoffMarker = L.marker(e.latlng).addTo(map).bindPopup("Drop-off Location").openPopup();
+                document.getElementById("dropoff").innerText = `${e.latlng.lat}, ${e.latlng.lng}`;
+            }
+        });
+
+        function submitRide() {
+            if (!locations.pickup || !locations.dropoff) {
+                alert("Please select both Pickup and Drop-off locations.");
+                return;
+            }
+
+            fetch('/api/create_ride/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    pickup_lat: locations.pickup.lat,
+                    pickup_lng: locations.pickup.lng,
+                    dropoff_lat: locations.dropoff.lat,
+                    dropoff_lng: locations.dropoff.lng
+                })
+            }).then(response => response.json())
+              .then(data => alert("Ride Created Successfully!"))
+              .catch(error => console.error('Error:', error));
+        }
+        
+        function getCSRFToken() {
+            let cookieValue = document.cookie.match('(^|;)\s*csrftoken\s*=\s*([^;]+)');
+            return cookieValue ? cookieValue.pop() : '';
+        }
+    </script>
+</body>
+</html>
+

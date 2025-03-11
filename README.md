@@ -1,7 +1,3 @@
-Here’s a **formatted version of your Software Requirements Specification (SRS) overview** that you can copy and paste directly into your **GitHub repository README or front page**:
-
----
-
 # **RideShare - Software Requirements Specification (SRS)**  
 **Version 1.0 - Approved**  
 **Prepared by:**  
